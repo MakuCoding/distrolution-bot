@@ -21,20 +21,20 @@ public class supportAccept extends Thread {
     }
 
     public void run() {
-        messageListener.supporter.put(supporter.getUser(), this);
+        messageListener.accept.put(supporter.getUser(), this);
         PrivateChannel pc = supporter.getUser().openPrivateChannel().complete();
-        pc.sendMessage("Willst du den Supportfall mit der ID " + scase.getId() + " von User " + scase.getUser().getAsMention() +  " wirklich annehmen? (Noch 30 Sekunden) [ja/nein]").queue();
+        pc.sendMessage("Willst du den Supportfall mit der ID " + scase.getId() + " von " + scase.getUser().getAsMention() +  " wirklich annehmen? (Noch 30 Sekunden) [ja/nein]").queue();
         for (int i = 30;i > 0;i--) {
             Message msg = pc.getHistory().retrievePast(1).complete().get(0);
             if (msg.getAuthor() == msg.getJDA().getSelfUser()) {
                 pc.editMessageById(msg.getId(), "Willst du den Supportfall mit der ID " +
-                        scase.getId() + " von User " + scase.getUser().getAsMention() +
+                        scase.getId() + " von " + scase.getUser().getAsMention() +
                         " wirklich annehmen? (Du hast noch " + i + " Sekunden) [ja/nein]").queue();
             }
             if (success) break;
             try {Thread.sleep(1000);} catch (InterruptedException e) {}
         }
-        messageListener.supporter.remove(supporter.getUser(), this);
+        messageListener.accept.remove(supporter.getUser(), this);
         if (success) {
             try {
                 int index = support.list.indexOf(scase);

@@ -28,11 +28,7 @@ public class permissions {
             if (main.statics.getAllowedRolesSupport().contains(r.getName()))
                 return true;
         }
-        event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(Color.RED)
-                .setDescription(":warning: Du hast nicht die Berechtigung dazu " + event.getMember().getAsMention() + ":exclamation:")
-                .build()).queue();
-        event.getMessage().delete().queue();
+
         return false;
     }
 

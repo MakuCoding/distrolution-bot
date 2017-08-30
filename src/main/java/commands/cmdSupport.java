@@ -8,6 +8,7 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import support.supportCase;
 import support.support;
 import support.supportAccept;
+import support.supportRefuse;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class cmdSupport implements Command {
 
     private supportCase getSupportCase(int id) {
         for (supportCase sc:support.list) {
-            if (sc.getId() == id && sc.getSupporter().size() == 0) {
+            if (sc.getId() == id) {
                 return sc;
             }
         }
@@ -67,7 +68,7 @@ public class cmdSupport implements Command {
 
                     if (args.length > 1) {
                         int anzahl = 0;
-                        for (supportCase s:support.list) {
+                        for (supportCase s : support.list) {
                             if (s.getUser() == event.getAuthor()) {
                                 anzahl++;
                             }
@@ -88,6 +89,8 @@ public class cmdSupport implements Command {
                             return;
                         }
                     }
+
+                    break;
 
                 case "list":
 
@@ -118,7 +121,7 @@ public class cmdSupport implements Command {
                         }
 
                         if (liste == "")
-                            listeOut.appendDescription("\nDie Supportliste ist zurzeit leer");
+                            listeOut.appendDescription("\nDie Supportliste ist zurzeit leer\n");
                         listeOut.appendDescription(liste + "\n================================");
                         event.getChannel().sendMessage(listeOut.build()).queue();
                         event.getMessage().delete().queue();
@@ -150,7 +153,7 @@ public class cmdSupport implements Command {
                         }
 
                         if (liste == "")
-                            listeOut.appendDescription("\nDu hast keine Support-Anfrage gestellt");
+                            listeOut.appendDescription("\nDu hast keine Support-Anfrage gestellt\n");
                         listeOut.appendDescription(liste + "\n================================");
                         event.getChannel().sendMessage(listeOut.build()).queue();
                         event.getMessage().delete().queue();
@@ -168,7 +171,7 @@ public class cmdSupport implements Command {
                                 return;
                             }
                             supportCase scase = getSupportCase(id);
-                            if (scase.getId() != 0) {
+                            if (scase.getId() != 0 && scase.getSupporter().size() == 0) {
                                 supportAccept sa = new supportAccept(event.getMember(), scase);
                                 sa.start();
                                 event.getMessage().delete().queue();
@@ -182,12 +185,21 @@ public class cmdSupport implements Command {
                                 return;
                             }
                         }
+                    } else {
+                        event.getChannel().sendMessage(new EmbedBuilder()
+                                .setColor(Color.RED)
+                                .setDescription(":warning: Du hast nicht die Berechtigung dazu " + event.getMember().getAsMention() + ":exclamation:")
+                                .build()).queue();
+                        event.getMessage().delete().queue();
+                        return;
                     }
+
+                    break;
 
                 case "solved":
 
                     List<supportCase> sclist = new ArrayList<>();
-                    for (supportCase s:support.list) {
+                    for (supportCase s : support.list) {
                         if (s.getUser() == event.getAuthor()) {
                             sclist.add(s);
                         }
@@ -217,15 +229,36 @@ public class cmdSupport implements Command {
                                     .build()).queue();
                             return;
                         }
+                    } else if (args.length == 2) {
+                        int id = 0;
+                        try {
+                            id = Integer.parseInt(args[1]);
+                        } catch (Exception e) {
+                            return;
+                        }
+                        supportCase scase = getSupportCase(id);
+                        if (event.getAuthor() == scase.getUser()) {
+                            scase.getSupporter().forEach(u -> u.openPrivateChannel().complete().sendMessage(event.getAuthor().getAsMention() + "'s Supportfall ist gelöst!").queue());
+                            support.list.remove(scase);
+                            event.getMessage().delete().queue();
+                            event.getChannel().sendMessage(new EmbedBuilder()
+                                    .setColor(Color.GREEN)
+                                    .setDescription("Dein Supportfall ist gelöst und wurde gelöscht!:thumbsup:")
+                                    .build()).queue();
+                            return;
+                        } else {
+                            event.getMessage().delete().queue();
+                            event.getChannel().sendMessage(new EmbedBuilder()
+                                    .setColor(Color.RED)
+                                    .setDescription(":warning: Du bist nicht der Ersteller dieser Support-Anfrage und kannst ihn deshalb nicht als gelöst markieren!")
+                                    .build()).queue();
+                            return;
+                        }
                     }
+
+                    break;
 
                 case "refuse":
-
-                    if (permissions.checkSupportPermission(event)) {
-
-                    }
-
-                case "needhelp":
 
                     if (permissions.checkSupportPermission(event)) {
                         if (args.length == 2) {
@@ -236,13 +269,45 @@ public class cmdSupport implements Command {
                                 return;
                             }
                             supportCase scase = getSupportCase(id);
+                            if (!(scase == new supportCase())) {
+                                supportRefuse refuse = new supportRefuse(scase, event.getAuthor());
+                                refuse.start();
+                            }
+                        }
+                    } else {
+                        event.getChannel().sendMessage(new EmbedBuilder()
+                                .setColor(Color.RED)
+                                .setDescription(":warning: Du hast nicht die Berechtigung dazu " + event.getMember().getAsMention() + ":exclamation:")
+                                .build()).queue();
+                        event.getMessage().delete().queue();
+                        return;
+                    }
+
+                    break;
+
+                case "needhelp":
+
+                    if (permissions.checkSupportPermission(event)) {
+                        System.out.println("1");
+                        if (args.length == 2) {
+                            System.out.println("2");
+                            int id = 0;
+                            try {
+                                id = Integer.parseInt(args[1]);
+                            } catch (Exception e) {
+                                return;
+                            }
+                            System.out.println(id);
+                            supportCase scase = getSupportCase(id);
                             id = support.list.indexOf(scase);
                             if (scase.getId() != 0) {
+                                System.out.println("4");
                                 if (scase.needsHelp()) {
                                     support.list.remove(id);
                                     scase.setNeedsHelp(false);
                                     support.list.add(id, scase);
                                 } else {
+                                    System.out.println("5");
                                     support.list.remove(id);
                                     scase.setNeedsHelp(true);
                                     support.list.add(id, scase);
@@ -269,7 +334,16 @@ public class cmdSupport implements Command {
                                 }
                             }
                         }
+                    } else {
+                        event.getChannel().sendMessage(new EmbedBuilder()
+                                .setColor(Color.RED)
+                                .setDescription(":warning: Du hast nicht die Berechtigung dazu " + event.getMember().getAsMention() + ":exclamation:")
+                                .build()).queue();
+                        event.getMessage().delete().queue();
+                        return;
                     }
+
+                    break;
 
                 case "helpsup":
 
@@ -283,7 +357,7 @@ public class cmdSupport implements Command {
                                 try {
                                     memb = event.getGuild().getMembersByEffectiveName(args[0], true).get(0);
                                 } catch (Exception ex) {
-                                    break;
+                                    return;
                                 }
                             }
                             supportCase scase = null;
@@ -298,15 +372,27 @@ public class cmdSupport implements Command {
                                 }
                             }
                             if (scase != null) {
-                                id = support.list.indexOf(scase);
-                                support.list.remove(scase);
-                                scase.addSupporter(event.getAuthor());
-                                support.list.add(id, scase);
-                                event.getMessage().delete().queue();
-                                return;
+                                if (!(scase.getSupporter().contains(event.getAuthor()))) {
+                                    id = support.list.indexOf(scase);
+                                    support.list.remove(scase);
+                                    scase.addSupporter(event.getAuthor());
+                                    support.list.add(id, scase);
+                                    event.getMessage().delete().queue();
+                                    return;
+                                }
                             }
                         }
+                    } else {
+                        event.getChannel().sendMessage(new EmbedBuilder()
+                                .setColor(Color.RED)
+                                .setDescription(":warning: Du hast nicht die Berechtigung dazu " + event.getMember().getAsMention() + ":exclamation:")
+                                .build()).queue();
+                        event.getMessage().delete().queue();
+                        return;
                     }
+
+                    break;
+
             }
 
             event.getChannel().sendMessage(new EmbedBuilder()

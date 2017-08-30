@@ -66,7 +66,7 @@ public class supportCase {
     }
 
     public void addSupporter(User supporter) {
-        this.supporter.add(supporter);
+        this.supporter.add(this.supporter.size(), supporter);
     }
 
     public void setNeedsHelp(boolean needsHelp) {

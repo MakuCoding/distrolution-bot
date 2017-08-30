@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import main.commandHandler;
 import support.supportAccept;
+import support.supportRefuse;
 import util.timeThread;
 
 import java.util.ArrayList;
@@ -106,14 +107,23 @@ public class messageListener extends ListenerAdapter {
 
     }
 
-    public static Map<User, supportAccept> supporter = new HashMap<>();
+    public static Map<User, supportAccept> accept = new HashMap<>();
+    public static Map<User, supportRefuse> refuse = new HashMap<>();
 
     public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
 
-        if (supporter.containsKey(event.getAuthor()) && event.getMessage().getContent().equalsIgnoreCase("ja")) {
-            supporter.get(event.getAuthor()).setSuccess(true);
-        } else if (supporter.containsKey(event.getAuthor()) && event.getMessage().getContent().equalsIgnoreCase("nein")) {
-            supporter.get(event.getAuthor()).setSuccess(false);
+        if (event.getMessage().getContent().equalsIgnoreCase("ja")) {
+            if (accept.containsKey(event.getAuthor())) {
+                accept.get(event.getAuthor()).setSuccess(true);
+            } else if (refuse.containsKey(event.getAuthor())) {
+                refuse.get(event.getAuthor()).setSuccess(true);
+            }
+        } else if (event.getMessage().getContent().equalsIgnoreCase("nein")) {
+            if (accept.containsKey(event.getAuthor())) {
+                accept.get(event.getAuthor()).setSuccess(false);
+            } else if (refuse.containsKey(event.getAuthor())) {
+                refuse.get(event.getAuthor()).setSuccess(false);
+            }
         }
 
     }
