@@ -3,9 +3,11 @@ package listeners;
 import main.main;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.core.handle.EventCache;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import main.commandHandler;
 import support.supportAccept;
@@ -87,14 +89,16 @@ public class messageListener extends ListenerAdapter {
             }
         }
 
-        for (String s:main.statics.getBlacklist()) {
-            if (event.getMessage().getContent().toLowerCase().contains(s.toLowerCase())) {
-                event.getMessage().delete().queue();
-                event.getChannel().sendMessage(":warning: Keine Kraftausdrücke " + event.getAuthor().getAsMention() + "! :angry:").queue();
-            }
-        }
-
         if (!(event.getAuthor() == event.getJDA().getSelfUser())) {
+            if (main.statics.getBlacklist().size() != 0 && main.statics.getBlacklist().get(0) != "") {
+                for (String s:main.statics.getBlacklist()) {
+                    if (event.getMessage().getContent().toLowerCase().contains(s.toLowerCase())) {
+                        event.getMessage().delete().queue();
+                        event.getChannel().sendMessage(":warning: Keine Kraftausdrücke " + event.getAuthor().getAsMention() + "! :angry:").queue();
+                    }
+                }
+            }
+
             for (User u:event.getMessage().getMentionedUsers()) {
                 Member m = event.getGuild().getMember(u);
                 if (m.getOnlineStatus() == OnlineStatus.DO_NOT_DISTURB) {

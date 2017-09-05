@@ -212,7 +212,7 @@ public class Music implements Command {
                     .addField("Aktuelle Wiedergabeliste anzeigen:", "-music playlist info [Seitennummer]", false)
                     .addField("Titel zur Wiedergabeliste hinzufügen/aus der Wiedergabeliste entfernen:", "-music playlist add (Link/YouTube-Suche)\n-music playlist remove (Link/YouTube-Suche", false)
                     .addField("Syntax anzeigen/Hilfe:", "-music help\n-music syntax", false)
-                    .addField("Erläuterungen:", "Alles was in eckigen klammern steht ist optional\nAlles was in runden Klammern steht ist obligatorisch", false)
+                    .addField("Erläuterungen:", "Alles was in eckigen Klammern steht ist optional\nAlles was in runden Klammern steht ist obligatorisch", false)
                     .build();
 
             guild = event.getGuild();

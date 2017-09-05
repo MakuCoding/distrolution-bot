@@ -47,7 +47,7 @@ public class cmdSupport implements Command {
                 if (anzahl <= 5) {
                     supportCase sc = new supportCase(main.statics.getSupportId(), event.getAuthor(), event.getGuild());
                     support.list.add(sc);
-                    //support.notifySupporter(sc);
+                    support.notifySupporter(sc);
                     event.getChannel().sendMessage(new EmbedBuilder().setColor(Color.GREEN).setDescription("Deine Anfrage wurde registriert. Bitte habe ein wenig Geduld, einer unserer Supporter wird dich bald anschreiben.").build()).queue();
                     event.getMessage().delete().queue();
                     return;
@@ -76,7 +76,7 @@ public class cmdSupport implements Command {
                         if (anzahl <= 5) {
                             supportCase sc = new supportCase(main.statics.getSupportId(), event.getAuthor(), event.getGuild(), Arrays.stream(args).skip(1).map(s -> " " + s).collect(Collectors.joining()).substring(1));
                             support.list.add(sc);
-                            //support.notifySupporter(sc);
+                            support.notifySupporter(sc);
                             event.getChannel().sendMessage(new EmbedBuilder().setColor(Color.GREEN).setDescription("Deine Anfrage wurde registriert. Bitte habe ein wenig Geduld, einer unserer Supporter wird dich bald anschreiben.").build()).queue();
                             event.getMessage().delete().queue();
                             return;
@@ -360,23 +360,23 @@ public class cmdSupport implements Command {
                                     return;
                                 }
                             }
-                            supportCase scase = null;
+                            List<supportCase> scase = null;
                             if (id != 0) {
-                                scase = getSupportCase(id);
+                                scase.add(getSupportCase(id));
                             } else if (memb != null) {
                                 for (supportCase s : support.list) {
                                     if (s.getSupporter().get(0) == memb.getUser()) {
-                                        scase = s;
+                                        scase.add(s);
                                         break;
                                     }
                                 }
                             }
-                            if (scase != null) {
-                                if (!(scase.getSupporter().contains(event.getAuthor()))) {
+                            if (scase != null && scase.size() == 1 && scase.get(0) != null) {
+                                if (!(scase.get(0).getSupporter().contains(event.getAuthor()))) {
                                     id = support.list.indexOf(scase);
                                     support.list.remove(scase);
-                                    scase.addSupporter(event.getAuthor());
-                                    support.list.add(id, scase);
+                                    scase.get(0).addSupporter(event.getAuthor());
+                                    support.list.add(id, scase.get(0));
                                     event.getMessage().delete().queue();
                                     return;
                                 }
@@ -395,11 +395,49 @@ public class cmdSupport implements Command {
 
             }
 
-            event.getChannel().sendMessage(new EmbedBuilder()
-                    .setColor(Color.RED)
-                    .build()).queue();
-            event.getMessage().delete().queue();
+            if (!permissions.checkSupportPermission(event)) {
 
+                event.getChannel().sendMessage(new EmbedBuilder()
+                        .setColor(Color.RED)
+                        .addField("Support-Command Hilfe", "Benutze folgende Befehle für Support", false)
+                        .addField("Supportanfrage stellen (ohne Grund/Erklärung):", "-support", false)
+                        .addField("Supportanfrage stellen (mit Grund/Erklärung):", "-support reason (Grund)", false)
+                        .addField("Eigene Supportanfragen auflisten:", "-support list", false)
+                        .addField("Eigener Supportfall wurde gelöst:", "-support solved [ID]", false)
+                        .addField("Erläuterungen:",
+                                "Bitte markiere alle gelösten Supportfälle mit -support solved damit sie aus dem System gelöscht werden!\n" +
+                                "Alles was in eckigen Klammern steht ist optional!\n" +
+                                "Alles was in runden Klammern steht ist obligatorisch!",
+                                false)
+                        .build()).queue();
+                event.getMessage().delete().queue();
+
+            } else {
+
+                event.getChannel().sendMessage(new EmbedBuilder()
+                        .setColor(Color.RED)
+                        .addField("Support-Command Hilfe", "Benutze folgende Befehle für Support", false)
+                        .addField("User Befehle:", "", false)
+                        .addField("Supportanfrage stellen (ohne Grund/Erklärung):", "-support", false)
+                        .addField("Supportanfrage stellen (mit Grund/Erklärung):", "-support reason (Grund)", false)
+                        .addField("Eigene Supportanfragen auflisten:", "-support list", false)
+                        .addField("Eigener Supportfall wurde gelöst:", "-support solved [ID]", false)
+                        .addBlankField(false)
+                        .addField("Supporter/Moderator/Admin/Owner Befehle:", "", false)
+                        .addField("Supportfall eines Benutzers akzeptieren:", "-support accept (ID)", false)
+                        .addField("Supportfall ablehnen:", "-support refuse (ID)", false)
+                        .addField("Hilfe für einen Supportfall suchen:", "-support needhelp (ID) [true/false]", false)
+                        .addField("Anderem Supporter bei Supportfall helfen:", "-support helpsup (ID)\n-support helpsup (Supporter)", false)
+                        .addField("Erläuterungen:",
+                                "Bitte markiere alle gelösten Supportfälle mit -support solved damit sie aus dem System gelöscht werden!\n" +
+                                        "Alles was in eckigen Klammern steht ist optional!\n" +
+                                        "Alles was in runden Klammern steht ist obligatorisch!",
+                                false)
+                        .build()).queue();
+                event.getMessage().delete().queue();
+
+            }
+            
         }
 
     }

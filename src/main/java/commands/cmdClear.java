@@ -32,7 +32,8 @@ public class cmdClear implements Command {
                 if (i > 1) {
                     event.getMessage().delete().queue();
                     try {
-                        msgs = history.retrievePast(i + 1).complete();
+                        Thread.sleep(100);
+                        msgs = history.retrievePast(i).complete();
                         event.getChannel().deleteMessages(msgs).queue();
                         bol = true;
                     } catch (Exception e) {

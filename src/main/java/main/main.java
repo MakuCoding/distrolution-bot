@@ -2,20 +2,22 @@ package main;
 
 import commands.*;
 import listeners.GameUpdateListener;
+import listeners.ReadyListener;
 import listeners.messageListener;
 import listeners.messageUpdateListener;
-import listeners.readyListener;
-import net.dv8tion.jda.core.*;
+import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import support.supportCase;
-import util.SECRETS;
+import util.settings;
 import util.STATIC;
 
 import javax.security.auth.login.LoginException;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 import java.util.Calendar;
-import java.util.List;
 
 public class main {
 
@@ -28,24 +30,15 @@ public class main {
         builder = new JDABuilder(AccountType.BOT);
         statics = new STATIC();
 
-        builder.setToken(SECRETS.TOKEN);
+        settings.loadSettings(false);
+        if (statics.getToken() == "") {
+            firstStart fs = new firstStart();
+            fs.start();
+            try {fs.join();} catch (Exception e) {System.exit(0);}
+        }
 
-        builder.setGame(new Game() {
-            @Override
-            public String getName() {
-                return "mit Titten";
-            }
-
-            @Override
-            public String getUrl() {
-                return null;
-            }
-
-            @Override
-            public GameType getType() {
-                return GameType.DEFAULT;
-            }
-        });
+        builder.setToken(statics.getToken());
+        builder.setGame(Game.of("Beta"));
         builder.setAutoReconnect(true);
         builder.setStatus(OnlineStatus.ONLINE);
 
@@ -86,7 +79,7 @@ public class main {
 
         Calendar cal = Calendar.getInstance();
 
-        builder.addListener(new readyListener());
+        builder.addListener(new ReadyListener());
         builder.addListener(new GameUpdateListener());
         builder.addListener(new messageListener());
         builder.addListener(new messageUpdateListener());

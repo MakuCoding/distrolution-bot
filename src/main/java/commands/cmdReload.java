@@ -12,7 +12,7 @@ public class cmdReload implements Command {
     public void action(String[] args, GuildMessageReceivedEvent event) {
 
         if (args.length == 0) {
-            util.settings.loadSettings();
+            util.settings.loadSettings(false);
             event.getChannel().sendMessage("Reload erfolgreich!").queue();
             event.getMessage().delete().queue();
         }
